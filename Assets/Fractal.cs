@@ -10,6 +10,22 @@ public class Fractal : MonoBehaviour {
     public int maxDepth;
     private int depth;
     public float childScale;
+
+    private Material[,] materials;
+
+    private void InitializeMaterials(){
+        materials = new Material[maxDepth + 1, 2];
+        for (int i = 0; i <= maxDepth; i++){
+            float t = i / (maxDepth - 1f);
+            t *= t;
+            materials[i, 0] = new Material(material);
+            materials[i, 0].color = Color.Lerp(Color.white, Color.yellow, t);
+            materials[i, 1] = new Material(material);
+            materials[i, 1].color = Color.Lerp(Color.white, Color.cyan, t);
+        }
+        materials[maxDepth, 0].color = Color.magenta;
+        materials[maxDepth, 1].color = Color.red;
+    }
     private static Vector3[] childDirections = {
         Vector3.up,
         Vector3.right,
@@ -27,16 +43,20 @@ public class Fractal : MonoBehaviour {
     };
 
     private void Start(){//invoked by unity once its component is enabled.
+        if (materials == null){//If materails have nothing inside initialize it(by using that method).
+            InitializeMaterials();
+        }
         gameObject.AddComponent<MeshFilter>().mesh = mesh;
-        gameObject.AddComponent<MeshRenderer>().material = material;
-        if(depth < maxDepth){
+        gameObject.AddComponent<MeshRenderer>().material = materials[depth, Random.Range(0,2)];
+        //GetComponent<MeshRenderer>().material.color = Color.Lerp(Color.white, Color.yellow, (float)depth / maxDepth);
+        if (depth < maxDepth){
             StartCoroutine(CreateChildren());   
         }// HERE THIS MEANS the current struct in which "this" is present.
 
     }
     private void Initialize(Fractal parent, int childIndex){//This method will invoke before Start.
         mesh = parent.mesh;
-        material = parent.material;
+        materials = parent.materials;
         maxDepth = parent.maxDepth;
         depth = parent.depth + 1;
         childScale = parent.childScale;
@@ -52,8 +72,10 @@ public class Fractal : MonoBehaviour {
     private IEnumerator CreateChildren(){
         //for loop will itterate through the number of direction childDirections struct have
         for (int i = 0; i < childDirections.Length; i++){
-            yield return new WaitForSeconds(0.5f);//<-Giving time and after that time, it is performing task.
+            yield return new WaitForSeconds(Random.Range(0.1f, 0.5f));//<-Giving time and after that time, it is performing task.
             new GameObject("Fractal Child").AddComponent<Fractal>().Initialize(this, i);
         }
     }
+
+
 }
