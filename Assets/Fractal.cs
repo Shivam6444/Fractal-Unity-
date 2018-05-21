@@ -13,12 +13,12 @@ public class Fractal : MonoBehaviour {
         gameObject.AddComponent<MeshFilter>().mesh = mesh;
         gameObject.AddComponent<MeshRenderer>().material = material;
         if(depth < maxDepth){
-            new GameObject("Fractal Child").AddComponent<Fractal>().Initialize(this, Vector3.up);
-            new GameObject("Fractal Child").AddComponent<Fractal>().Initialize(this, Vector3.right);
+            StartCoroutine(CreateChildren());   
         }// HERE THIS MEANS the current struct in which "this" is present.
 
     }
-    private void Initialize(Fractal parent, Vector3 direction){//This method will invoke before Start.
+    private void Initialize(Fractal parent, Vector3 direction, Quaternion orientation)
+    {//This method will invoke before Start.
         mesh = parent.mesh;
         material = parent.material;
         maxDepth = parent.maxDepth;
@@ -27,5 +27,18 @@ public class Fractal : MonoBehaviour {
         transform.parent = parent.transform;
         transform.localScale = Vector3.one * childScale;
         transform.localPosition = direction * (0.5f + 0.5f * childScale);
+        transform.localRotation = orientation;
+    }
+
+    //This Method will make the process slower.
+    private IEnumerator CreateChildren(){
+        yield return new WaitForSeconds(0.5f);//<-Giving time and after that time it is performing task.
+        new GameObject("Fractal Child").AddComponent<Fractal>().Initialize(this, Vector3.up, Quaternion.identity);
+        yield return new WaitForSeconds(0.5f);
+        new GameObject("Fractal Child").AddComponent<Fractal>().Initialize(this, Vector3.right,
+            Quaternion.Euler(0f, 0f, -90f));
+        yield return new WaitForSeconds(0.5f);
+        new GameObject("Fractal Child").AddComponent<Fractal>().
+            Initialize(this, Vector3.left, Quaternion.Euler(0f, 0f, 90f));
     }
 }
